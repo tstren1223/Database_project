@@ -45,6 +45,7 @@ Form::Form(QWidget *parent)
     rl.setInterval(90);
     QObject::connect(&rl,SIGNAL(timeout()),this,SLOT(t_run()));
     QObject::connect(&ti,SIGNAL(timeout()),this,SLOT(timer()));
+    ti.setInterval(1000);
     QObject::connect(this,SIGNAL(signal_updateTable()),this,SLOT(slot_updateTable2()));
     QObject::connect(this,SIGNAL(signal_updateTable3()),this,SLOT(slot_updateTable3()));
     QObject::connect(this,SIGNAL(signal_modifyTwo()),this,SLOT(on_pushButton_7_clicked()));
@@ -110,8 +111,16 @@ Form::Form(QWidget *parent)
 void Form::timer(){
     query->exec("SELECT CURRENT_TIMESTAMP(0) AT TIME ZONE 'AWST'");
     query->next();
-    today=QDate::fromString(query->value(0).toString(),Qt::ISODateWithMs);
-    ui->timeEdit_2->setTime(QTime::fromString(query->value(0).toString(),Qt::ISODateWithMs));
+    string q=query->value(0).toString().toStdString();
+    int index=q.find('T');
+    string a="";
+    a+=q.substr(8,2);
+    a+="/";
+    a+=q.substr(5,2);
+    a+="/";
+    a+=q.substr(0,4);
+    today= QDate::fromString(QString::fromStdString(a),"dd/MM/yyyy");
+    ui->timeEdit_2->setTime(QTime::fromString(QString::fromStdString(q.substr(index+1,8))));
 }
 bool Form::eventFilter(QObject *obj, QEvent *event)
 {
@@ -313,12 +322,6 @@ void Form::on_pushButton_clicked()//reserve
     ui->tableWidget->show();
     ui->tableWidget_2->hide();
 
-    /*query->exec("SELECT * FROM timeTable");
-    while(query->next()){
-        QString temp=query->value(1).toString();
-        ui->comboBox_3->addItem(temp);
-    }*/
-
     //show city and town in combo box
     ui->comboBox->clear();
     ui->comboBox_2->clear();
@@ -404,7 +407,17 @@ void Form::on_pushButton_3_clicked()//other service
     _hideall();
     bug=0;
     state=3;
-
+    QTableWidgetItem *item;
+    int row=ui->tableWidget_3->rowCount();
+    //delete original item
+    for(int i=0;i<row;i++){
+        for(int j=0;j<col2;j++){
+            item=ui->tableWidget_3->item(i,j);
+            delete item;
+        }
+    }
+    ui->tableWidget_3->clearContents();
+    ui->tableWidget_3->setRowCount(0);
     double_state2=false;
     //process UI hide
     ui->label_2->hide();
@@ -454,6 +467,8 @@ void Form::on_pushButton_3_clicked()//other service
     ui->comboBox_2->clear();
     ui->comboBox_6->clear();
     ui->comboBox_7->clear();
+
+    emit signal_updateTable3();
     emit signal_initialFromToCity();
 
 
@@ -461,7 +476,6 @@ void Form::on_pushButton_3_clicked()//other service
     ui->comboBox_5->setCurrentIndex(-1);
 
 
-    emit signal_updateTable3();
 
 
 }
@@ -470,6 +484,7 @@ void Form::on_pushButton_4_clicked()//log out
 {
 
     double_state2=false;
+    ti.stop();
     ui->label_12->hide();
     bug=0;
     if(!q){
@@ -583,7 +598,8 @@ void Form::on_pushButton_6_clicked()//enter
         double NewtempSeat=ui->comboBox_3->currentText().toDouble()+((ui->comboBox_4->currentText().toDouble())/100.0);
         bool success=true;
         QString com;
-
+        int dateDiff=tempSelectDate.toJulianDay()-today.toJulianDay();
+        tempDateDiff=dateDiff;
 
 
 
@@ -684,7 +700,7 @@ void Form::on_pushButton_6_clicked()//enter
             query->exec(com);
             com=QString::fromStdString("UPDATE "+nowct->clientName+" SET seatNumber=")+QString::number(NewtempSeat)+" WHERE code="+QString::number(modifyC+1);
             query->exec(com);
-            com=QString("SELECT * FROM needed_train_info WHERE t_num=")+QString::number(tempTrainNumber);
+            com=QString("SELECT * FROM  (SELECT* FROM needed_train_info UNION SELECT* FROM needed_train_info"+QString::number(tempDateDiff+1)+")as a WHERE t_num=")+QString::number(tempTrainNumber);
             query->exec(com);
             QTime startT;
             QTime endT;
@@ -1213,27 +1229,21 @@ int Form::stringToInt(string s)
 void Form::indexToStation(const int number, int start, int end, QString &startS, QString &destS)
 {
 
-    QString com="SELECT * FROM needed_train_info WHERE t_num="+QString::number(number);
+    QString com="SELECT station_c_n FROM(SELECT* FROM needed_train_info UNION SELECT* FROM needed_train_info"+QString::number(tempDateDiff+1)+")as a WHERE t_num="+QString::number(number);
     query->exec(com);
-    query->next();
-    for(int i=0;i<start;i++){
-        query->next();
+    int i=0;
+    while(query->next()){
+        if(i==start)
+            startS=query->value(0).toString();
+        if(end==start)
+            destS=query->value(0).toString();
     }
-    startS=query->value(0).toString();
-
-    com="SELECT * FROM timeTable"+QString::number(number);
-    query->exec(com);
-    query->next();
-    for(int i=0;i<end;i++){
-        query->next();
-    }
-    destS=query->value(0).toString();
 }
 
 void Form::stationToIndex(const int number, int &start, int &end, QString startS, QString destS,QTime dep,QTime arr)
 {
-    string com="SELECT * FROM needed_train_info WHERE t_num="+QString::number(number).toStdString();
-    query->exec(QString::fromStdString(com));
+    QString com="SELECT * FROM (SELECT* FROM needed_train_info UNION SELECT* FROM needed_train_info"+QString::number(tempDateDiff+1)+")as a WHERE t_num="+QString::number(number);
+    query->exec(com);
     int count=0;
     while(query->next()){
         if(query->value(1).toString()==startS && query->value(13).toTime()==dep){
@@ -1264,7 +1274,7 @@ void Form::changeRowColor3(int row)
     }
 }
 void Form::client_table_create(){
-    string data=" (code SERIAL,startLocation varchar(20),destination varchar(20),trainNumber INTEGER, seatNumber DOUBLE PRECISION,calendar DATE,startTime TIME,endTime TIME,trainType VARCHAR(20),meat VARCHAR(10), vegetable VARCHAR(10), special SMALLINT,identity VARCHAR(40))";
+    string data=" (code SERIAL,startLocation varchar(20),destination varchar(20),trainNumber INTEGER, seatNumber DOUBLE PRECISION,calendar DATE,startTime TIME,endTime TIME,trainType VARCHAR(20),meat VARCHAR(10), vegetable VARCHAR(10), special SMALLINT,identity VARCHAR(40),PRIMARY KEY (code))";
     QString com=QString::fromStdString("CREATE TABLE IF NOT EXISTS "+nowct->clientName+data);
     query->exec(com);
 }
@@ -1377,8 +1387,7 @@ void Form::on_pushButton_7_clicked()
             for(int i=0;i<index2-index1+1;i++){
                 seatCondition[index1+i]='y';
             }
-
-            com="UPDATE seat"+QString::number(tempTrainNumber).toStdString()+" SET d"+QString::number(tempDateDiff+1).toStdString()+"='"+QString::fromStdString(seatCondition).toStdString()+"' WHERE seat="+QString::number(nowSeat).toStdString();
+            com=string("SELECT * FROM seat_table")+ "WHERE seat_code="+QString::number(tempDateDiff+1).toStdString()+"and train_num="+QString::number(tempTrainNumber).toStdString();
             query->exec(QString::fromStdString(com));
 
         }
@@ -1467,9 +1476,16 @@ void Form::on_pushButton_8_clicked()
             QString station1=ui->comboBox_6->currentText();
             QString station2=ui->comboBox_7->currentText();
             //all train number that can be searched
+            qDebug()<<dateDiff;
             QString ask=ui->timeEdit->time().toString();
             QString com="SELECT DISTINCT t_nn,s_s,s_e,d_t,a_t,t_c_n,t_l,s_o,e_o FROM get_train('"+change_time(ask,0,-30)+"','"+change_time(ask,0,30)+"','"+station1+"','"+station2+"')"+" ,needed_train_info a WHERE t_nn=t_num";
-            QString com2="SELECT DISTINCT t_nn,s_s,s_e,d_t,a_t,t_c_n,t_l,s_o,e_o FROM get_train2('"+change_time(ask,0,-30)+"','"+change_time(ask,0,30)+"','"+station1+"','"+station2+"')"+" ,needed_train_info a WHERE t_nn=t_num";
+            QString com2="SELECT DISTINCT t_nn,s_s,s_e,d_t,a_t,t_c_n,t_l,s_o,e_o FROM get_train2('"+change_time(ask,0,-30)+"','"+change_time(ask,0,30)+"','"+station1+"','"+station2+"')"+" ,needed_train_info"+QString::number(dateDiff+1)+" a WHERE t_nn=t_num";
+
+            if(dateDiff==0){
+                com+=" and d_t>'"+ui->timeEdit_2->time().toString()+"'";
+                com2+=" and d_t>'"+ui->timeEdit_2->time().toString()+"'";
+            }
+
             int row=ui->tableWidget->rowCount();
             QTableWidgetItem *item;
             //delete original item
@@ -1480,8 +1496,8 @@ void Form::on_pushButton_8_clicked()
                 }
             }
             //print data to table
-            if(today.toJulianDay() - ui->calendarWidget->selectedDate().toJulianDay()==0)
-                com+=" UNION "+com2;
+            com+=" UNION "+com2;
+            qDebug()<<com;
             query->exec(com);
             ui->tableWidget->clearContents();
             ui->tableWidget->setRowCount(query->size());
@@ -1550,7 +1566,6 @@ void Form::on_pushButton_8_clicked()
             ui->comboBox_7->show();
         }
 
-
         if((state==4 && !ui->checkBox->isChecked() && !ui->checkBox_2->isChecked() && !ui->checkBox_3->isChecked()) || state==2){
             //search (for check)
             QTableWidgetItem *item;
@@ -1567,6 +1582,8 @@ void Form::on_pushButton_8_clicked()
             QString startLocation=ui->comboBox_6->currentText();
             QString endLocation=ui->comboBox_7->currentText();
             QDate day=ui->calendarWidget->selectedDate();
+            int dateDiff=day.toJulianDay()-today.toJulianDay();
+            tempDateDiff=dateDiff;
             string com="SELECT * FROM "+nowct->clientName;
             query->exec(QString::fromStdString(com));
 
@@ -1577,6 +1594,12 @@ void Form::on_pushButton_8_clicked()
                     if(query->value(2).toString()==endLocation){
                         if(query->value(5).toDate()==day){
                             //find the corresponding tickets
+                            if(dateDiff==0){
+                                if(query->value(7).toTime()<ui->timeEdit_2->time()){
+                                    continue;
+                                }
+                                qDebug()<<query->value(7).toString()<<"AA"<<ui->timeEdit_2->time().toString();
+                            }
                             code.push_back(query->value(0).toInt());
                         }
                     }
@@ -1945,8 +1968,8 @@ void Form::on_pushButton_8_clicked()
         //ui->tableWidget_3->setRowCount(code.size());
 
         //print the tickets data into table
-        type.clear();
         train_num.clear();
+        type.clear();
         for(int i=0;i<(int)code.size();i++){
             QString command="SELECT * FROM ";
             command+=QString::fromStdString(nowct->clientName);
@@ -2052,7 +2075,8 @@ void Form::on_pushButton_8_clicked()
                 text+=query->value(3).toString();
                 item->setText(text);
                 ui->tableWidget_3->setItem(code.size()+ii,1,item);
-
+                type.push_back(query->value(8).toString());
+                train_num.push_back(query->value(3).toString());
                 //set start location
                 item=new QTableWidgetItem;
                 item->setText(query->value(1).toString());
@@ -2154,12 +2178,13 @@ void Form::on_pushButton_8_clicked()
 void Form::on_comboBox_8_currentIndexChanged(int index)
 {
     if(state==3){
-        QString com2=QString("SELECT DISTINCT bf,food,crp FROM needed_train_info WHERE t_num=")+QString::number(tempTrainNumber);
+        QString com2=QString("SELECT DISTINCT bf,food,crp FROM(SELECT* FROM needed_train_info UNION SELECT* FROM needed_train_info"+QString::number(tempDateDiff+1)+")as a WHERE t_num=")+QString::number(tempTrainNumber);
+        qDebug()<<com2;
         query->exec(com2);
         query->next();
-        bool pre=(query->value(0).toString()=='Y'?true:false);
-        bool bento=(query->value(1).toString()=='Y'?true:false);
-        bool eld=(query->value(2).toString()=='Y'?true:false);
+        bool pre=(query->value(0).toString()=="Y"?true:false);
+        bool bento=(query->value(1).toString()=="Y"?true:false);
+        bool eld=(query->value(2).toString()=="Y"?true:false);
         rl.stop();
         ui->label_7->hide();
         ui->pushButton_6->hide();
@@ -2184,7 +2209,7 @@ void Form::on_comboBox_8_currentIndexChanged(int index)
             ui->spinBox_2->hide();
             ui->spinBox_3->hide();
             ui->comboBox_9->clear();
-            if((ui->comboBox_8->currentText()!="Pregnant"&&ui->comboBox_8->currentText()!="Elder")||(ui->comboBox_8->currentText()=="Pregnant"&&pre)||ui->comboBox_8->currentText()=="Elder"&&eld)
+            if((ui->comboBox_8->currentText()!="Pregnant"&&ui->comboBox_8->currentText()!="Elder")||(ui->comboBox_8->currentText()=="Pregnant"&&pre)||(ui->comboBox_8->currentText()=="Elder"&&eld))
             ui->comboBox_9->addItem("Special Care");
 
             if(bento)
@@ -2211,7 +2236,8 @@ void Form::on_pushButton_9_clicked()
     string com;
 
 
-    com="SELECT * FROM needed_train_info WHERE t_num="+QString::number(tempTrainNumber).toStdString();
+    com="SELECT * FROM(SELECT* FROM needed_train_info UNION SELECT* FROM needed_train_info"+QString::number(tempDateDiff+1).toStdString()+")as a WHERE t_num="+QString::number(tempTrainNumber).toStdString()+" ORDER BY num_order";
+    qDebug()<<QString::fromStdString(com);
     query->exec(QString::fromStdString(com));
     QString startStop=ui->comboBox_10->currentText();
     QString destStop=ui->comboBox_11->currentText();
@@ -2240,7 +2266,7 @@ void Form::on_pushButton_9_clicked()
     }
 
 
-    com="SELECT * FROM needed_train_info WHERE t_num="+QString::number(tempTrainNumber).toStdString();
+    com="SELECT * FROM (SELECT* FROM needed_train_info UNION SELECT* FROM needed_train_info"+QString::number(tempDateDiff+1).toStdString()+")as a WHERE t_num="+QString::number(tempTrainNumber).toStdString()+" ORDER BY num_order";
     query->exec(QString::fromStdString(com));
 
     count=0;
@@ -2297,7 +2323,7 @@ void Form::on_pushButton_9_clicked()
         query->exec(com2);
     }
 
-    com="SELECT * FROM needed_train_info WHERE t_num="+QString::number(tempTrainNumber).toStdString();
+    com="SELECT * FROM (SELECT* FROM needed_train_info UNION SELECT* FROM needed_train_info"+QString::number(tempDateDiff+1).toStdString()+")as a WHERE t_num="+QString::number(tempTrainNumber).toStdString()+" ORDER BY num_order";
     query->exec(QString::fromStdString(com));
     while(query->next()){
         if(query->value(1).toString()==ui->comboBox_10->currentText()){
@@ -2448,9 +2474,12 @@ void Form::on_comboBox_6_activated(int index)
             }
         }
 
+
+
         ui->pushButton_8->clicked();
     }
-    if(state==4){
+
+    if(state==4|| state==3){
         ui->pushButton_8->click();
     }
 }
@@ -2483,6 +2512,8 @@ void Form::on_comboBox_7_activated(int index)
             ui->comboBox_7->removeItem(index);
             QString com="SELECT DISTINCT chinese_name FROM train_station_code_2 WHERE related_city='"+ui->comboBox->currentText()+(QString)"'";
             query->exec(com);
+
+            ui->pushButton_8->clicked();
             while(query->next()){
                 if(query->value(0).toString()==ui->comboBox_6->currentText())
                     continue;
@@ -2491,9 +2522,11 @@ void Form::on_comboBox_7_activated(int index)
             }
         }
 
+
+
         ui->pushButton_8->clicked();
     }
-    if(state==4){
+    if(state==4|| state==3){
         ui->pushButton_8->click();
     }
 }
@@ -4167,9 +4200,9 @@ void Form::on_comboBox_activated(int index)
 
     }
     else if(double_state2){
-        QString com="SELECT station_c_n,min(num_order) from needed_train_info GROUP BY (t_num,city,station_c_n) HAVING t_num="+QString::number(tempTrainNumber)+ "and city='"+ui->comboBox->currentText()+"'"+"ORDER BY (min(num_order)) " ;
-        QString com3=QString::fromStdString("SELECT city,min(num_order) from needed_train_info GROUP BY (t_num,CITY) HAVING t_num="+QString::number(tempTrainNumber).toStdString()+"ORDER BY (min(num_order)) ");
-
+        QString com="SELECT station_c_n,min(num_order) from (SELECT* FROM needed_train_info UNION SELECT* FROM needed_train_info"+QString::number(tempDateDiff+1)+")as a GROUP BY (t_num,city,station_c_n) HAVING t_num="+QString::number(tempTrainNumber)+ "and city='"+ui->comboBox->currentText()+"'ORDER BY (min(num_order)) " ;
+        QString com3="SELECT city,min(num_order) from (SELECT* FROM needed_train_info UNION SELECT* FROM needed_train_info"+QString::number(tempDateDiff+1)+")as a GROUP BY (t_num,CITY) HAVING t_num="+QString::number(tempTrainNumber)+"ORDER BY (min(num_order)) ";
+        qDebug()<<com;
         ui->comboBox_10->clear();
         if(ui->comboBox_2->currentText()==ui->comboBox->currentText()){
             query->exec(com);
@@ -4219,8 +4252,7 @@ void Form::on_comboBox_2_activated(int index)
         //to (city)
         //when the combo box that display city is changed
         //the corresponding town will also changed
-        QString com="SELECT DISTINCT chinese_name FROM train_station_code_2 WHERE related_city='"+ui->comboBox_2->currentText()+(QString)"'";
-        query->exec(com);
+        query->exec(((QString)("SELECT DISTINCT chinese_name FROM train_station_code_2 WHERE related_city='")+ui->comboBox->currentText()+(QString)"'"));
         ui->comboBox_7->clear();
         while(query->next()){
             if(query->value(0).toString()==ui->comboBox_6->currentText())
@@ -4232,8 +4264,8 @@ void Form::on_comboBox_2_activated(int index)
 
     }
     else if(double_state2){
-        QString com="SELECT station_c_n,min(num_order) from needed_train_info GROUP BY (t_num,city,station_c_n) HAVING t_num="+QString::number(tempTrainNumber)+ "and city='"+ui->comboBox_2->currentText()+"'"+"ORDER BY (min(num_order)) " ;
-        query->exec(com);
+        QString com="SELECT station_c_n,min(num_order) from (SELECT* FROM needed_train_info UNION SELECT* FROM needed_train_info"+QString::number(tempDateDiff+1)+")as a GROUP BY (t_num,city,station_c_n) HAVING t_num="+QString::number(tempTrainNumber)+ "and city='"+ui->comboBox_2->currentText()+"'ORDER BY (min(num_order)) " ;
+               query->exec(com);
         ui->comboBox_11->clear();
         if(ui->comboBox_2->currentText()==ui->comboBox->currentText()){
             bool allowed=false;
@@ -4267,7 +4299,7 @@ void Form::on_timeEdit_timeChanged(const QTime &time)
 
 void Form::on_comboBox_3_activated(int index)
 {
-    QString com="SELECT * FROM needed_train_info WHERE t_num="+QString::number(tempTrainNumber)+"ORDER BY seat_code";
+    QString com="SELECT * FROM  (SELECT* FROM needed_train_info UNION SELECT* FROM needed_train_info"+QString::number(tempDateDiff+1)+")as a WHERE t_num="+QString::number(tempTrainNumber)+"ORDER BY seat_code";
     query->exec(com);
     if(!query->next()){
         return;
@@ -4368,8 +4400,8 @@ void Form::on_comboBox_9_activated(int index)
 void Form::on_comboBox_10_activated(int index)
 {
     index=-1;
-    QString com="SELECT station_c_n,min(num_order) from needed_train_info GROUP BY (t_num,city,station_c_n) HAVING t_num="+QString::number(tempTrainNumber)+ "and city='"+ui->comboBox_2->currentText()+"'"+"ORDER BY (min(num_order)) " ;
-    QString com3=QString::fromStdString("SELECT city,min(num_order) from needed_train_info GROUP BY (t_num,CITY) HAVING t_num="+QString::number(tempTrainNumber).toStdString()+"ORDER BY (min(num_order)) ");
+    QString com="SELECT station_c_n,min(num_order) FROM (SELECT* FROM needed_train_info UNION SELECT* FROM needed_train_info"+QString::number(tempDateDiff+1)+")as a GROUP BY (t_num,city,station_c_n) HAVING t_num="+QString::number(tempTrainNumber)+ "and city='"+ui->comboBox_2->currentText()+"'"+"ORDER BY (min(num_order)) " ;
+    QString com3=QString::fromStdString("SELECT city,min(num_order) from(SELECT* FROM needed_train_info UNION SELECT* FROM needed_train_info"+QString::number(tempDateDiff+1).toStdString()+")as a GROUP BY (t_num,CITY) HAVING t_num="+QString::number(tempTrainNumber).toStdString()+"ORDER BY (min(num_order)) ");
 
     if(ui->comboBox_2->currentText()==ui->comboBox->currentText()){
         query->exec(com);
@@ -4720,7 +4752,35 @@ void Form::on_tableWidget_2_cellActivated(int row, int column)
         number=Form::train_num[row].toInt();
         tempTrainNumber=number;
 
-        QString com3=QString::fromStdString("SELECT city,min(num_order) from needed_train_info GROUP BY (t_num,CITY) HAVING t_num="+QString::number(number).toStdString()+"ORDER BY (min(num_order)) ");
+        item=ui->tableWidget_2->item(row,0);
+        string processDate=item->text().toStdString();
+        int y,m,d;
+        int ind=0;
+        int pred=0;
+        ind=processDate.find_first_of("-",ind);
+        y=stoi(processDate.substr(pred,ind-pred));
+        pred=ind+1;
+        ind++;
+
+        ind=processDate.find_first_of("-",ind);
+        m=stoi(processDate.substr(pred,ind-pred));
+        pred=ind+1;
+
+        d=stoi(processDate.substr(pred));
+
+        tableDate.setDate(y,m,d);
+        qDebug()<<tableDate;
+        tempSelectDate=tableDate;
+        int dateDiff=tableDate.toJulianDay()-today.toJulianDay();
+        tempDateDiff=dateDiff;
+        QString com3=QString::fromStdString("SELECT city,min(num_order) from (SELECT* FROM needed_train_info UNION SELECT* FROM needed_train_info")+QString::number(dateDiff+1);
+        QString tail=QString::fromStdString(") as a GROUP BY (t_num,CITY) HAVING t_num="+QString::number(number).toStdString()+"ORDER BY (min(num_order)) ");
+        qDebug()<<"DIFF:"<<dateDiff;
+        if(dateDiff==0){
+            com3+=" ) as a WHERE dep_time>'"+ui->timeEdit_2->time().toString()+"'";
+        }
+        com3+=tail;
+        qDebug()<<com3;
         query->exec(com3);
         ui->comboBox->clear();
         ui->comboBox_2->clear();
@@ -4744,7 +4804,7 @@ void Form::on_tableWidget_2_cellActivated(int row, int column)
         endStop=item->text();
         tempDest=endStop;
 
-
+        tempDateDiff=dateDiff;
         ui->comboBox->activated(0);
         ui->comboBox_2->activated(0);
         //get depart time
@@ -4761,26 +4821,7 @@ void Form::on_tableWidget_2_cellActivated(int row, int column)
         tempSeat=seatNumber;
 
 
-        item=ui->tableWidget_2->item(row,0);
-        string processDate=item->text().toStdString();
-        int y,m,d;
-        int ind=0;
-        int pred=0;
 
-        ind=processDate.find_first_of("-",ind);
-        y=stoi(processDate.substr(pred,ind-pred));
-        pred=ind+1;
-        ind++;
-
-        ind=processDate.find_first_of("-",ind);
-        m=stoi(processDate.substr(pred,ind-pred));
-        pred=ind+1;
-
-        d=stoi(processDate.substr(pred));
-
-        tableDate.setDate(y,m,d);
-        qDebug()<<tableDate;
-        tempSelectDate=tableDate;
 
 
         string com;
@@ -4801,7 +4842,7 @@ void Form::on_tableWidget_2_cellActivated(int row, int column)
                     //find
                     notfound=false;
                     tempCode=query->value(0).toInt();
-                    com="SELECT * FROM needed_train_info WHERE t_num="+QString::number(number).toStdString();
+                    com="SELECT * FROM(SELECT* FROM needed_train_info UNION SELECT* FROM needed_train_info"+QString::number(tempDateDiff+1).toStdString()+")as a WHERE t_num="+QString::number(number).toStdString()+" ORDER BY num_order";
                     query->exec(QString::fromStdString(com));
                     int startIndex=-1;
                     int destIndex=-1;

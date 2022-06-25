@@ -194,6 +194,7 @@ void MainWindow::on_pushButton_clicked()//enter
                 fo.q=false;
                 fo.show();
                 fo.state=0;
+                fo.ti.start();
                 tshow.stop();
                 tshow.setInterval(300);
                 tshow.start();

@@ -15,7 +15,7 @@ CC            = gcc
 CXX           = g++
 DEFINES       = -DUNICODE -D_UNICODE -DWIN32 -DMINGW_HAS_SECURE_API=1 -DHAVE_QT5 -DQT_QML_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SQL_LIB -DQT_CORE_LIB -DQT_NEEDS_QMAIN
 CFLAGS        = -fno-keep-inline-dllexport -g -Wall -Wextra -Wextra $(DEFINES)
-CXXFLAGS      = -fno-keep-inline-dllexport -g -std=gnu++1z -Wall -Wextra -Wextra -fexceptions -mthreads $(DEFINES)
+CXXFLAGS      = -fno-keep-inline-dllexport -g -Wall -Wextra -Wextra -fexceptions -mthreads $(DEFINES)
 INCPATH       = -I. -I../../../../Qt/6.3.1/mingw_64/include -I../../../../Qt/6.3.1/mingw_64/include/QtWidgets -I../../../../Qt/6.3.1/mingw_64/include/QtGui -I../../../../Qt/6.3.1/mingw_64/include/QtSql -I../../../../Qt/6.3.1/mingw_64/include/QtCore -Idebug -I. -I/include -I../../../../Qt/6.3.1/mingw_64/mkspecs/win32-g++ 
 LINKER      =        g++
 LFLAGS        =        -Wl,-subsystem,windows -mthreads
@@ -175,7 +175,7 @@ compiler_moc_predefs_make_all: debug/moc_predefs.h
 compiler_moc_predefs_clean:
 	-$(DEL_FILE) debug\moc_predefs.h
 debug/moc_predefs.h: ../../../../Qt/6.3.1/mingw_64/mkspecs/features/data/dummy.cpp
-	g++ -fno-keep-inline-dllexport -g -std=gnu++1z -Wall -Wextra -Wextra -dM -E -o debug\moc_predefs.h ..\..\..\..\Qt\6.3.1\mingw_64\mkspecs\features\data\dummy.cpp
+	g++ -fno-keep-inline-dllexport -g -Wall -Wextra -Wextra -dM -E -o debug\moc_predefs.h ..\..\..\..\Qt\6.3.1\mingw_64\mkspecs\features\data\dummy.cpp
 
 compiler_moc_header_make_all: debug/moc_dialog.cpp debug/moc_form.cpp debug/moc_mainwindow.cpp
 compiler_moc_header_clean:
@@ -335,7 +335,7 @@ debug/moc_dialog.cpp: dialog.h \
 		staff.h \
 		debug/moc_predefs.h \
 		../../../../Qt/6.3.1/mingw_64/bin/moc.exe
-	C:\Qt\6.3.1\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/tstre/Downloads/final/debug/moc_predefs.h -IC:/Qt/6.3.1/mingw_64/mkspecs/win32-g++ -IC:/Users/tstre/Downloads/final -IC:/Qt/6.3.1/mingw_64/include -IC:/Qt/6.3.1/mingw_64/include/QtWidgets -IC:/Qt/6.3.1/mingw_64/include/QtGui -IC:/Qt/6.3.1/mingw_64/include/QtSql -IC:/Qt/6.3.1/mingw_64/include/QtCore -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++ -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++/backward -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include-fixed -IC:/Qt/Tools/mingw810_64/x86_64-w64-mingw32/include dialog.h -o debug\moc_dialog.cpp
+	C:\Qt\6.3.1\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/tstre/Downloads/final/debug/moc_predefs.h -IC:/Qt/6.3.1/mingw_64/mkspecs/win32-g++ -IC:/Users/tstre/Downloads/final -IC:/Qt/6.3.1/mingw_64/include -IC:/Qt/6.3.1/mingw_64/include/QtWidgets -IC:/Qt/6.3.1/mingw_64/include/QtGui -IC:/Qt/6.3.1/mingw_64/include/QtSql -IC:/Qt/6.3.1/mingw_64/include/QtCore -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++ -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed -IC:/Qt/Tools/mingw1120_64/x86_64-w64-mingw32/include dialog.h -o debug\moc_dialog.cpp
 
 debug/moc_form.cpp: form.h \
 		../../../../Qt/6.3.1/mingw_64/include/QtWidgets/QWidget \
@@ -540,7 +540,7 @@ debug/moc_form.cpp: form.h \
 		networkclient.h \
 		debug/moc_predefs.h \
 		../../../../Qt/6.3.1/mingw_64/bin/moc.exe
-	C:\Qt\6.3.1\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/tstre/Downloads/final/debug/moc_predefs.h -IC:/Qt/6.3.1/mingw_64/mkspecs/win32-g++ -IC:/Users/tstre/Downloads/final -IC:/Qt/6.3.1/mingw_64/include -IC:/Qt/6.3.1/mingw_64/include/QtWidgets -IC:/Qt/6.3.1/mingw_64/include/QtGui -IC:/Qt/6.3.1/mingw_64/include/QtSql -IC:/Qt/6.3.1/mingw_64/include/QtCore -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++ -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++/backward -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include-fixed -IC:/Qt/Tools/mingw810_64/x86_64-w64-mingw32/include form.h -o debug\moc_form.cpp
+	C:\Qt\6.3.1\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/tstre/Downloads/final/debug/moc_predefs.h -IC:/Qt/6.3.1/mingw_64/mkspecs/win32-g++ -IC:/Users/tstre/Downloads/final -IC:/Qt/6.3.1/mingw_64/include -IC:/Qt/6.3.1/mingw_64/include/QtWidgets -IC:/Qt/6.3.1/mingw_64/include/QtGui -IC:/Qt/6.3.1/mingw_64/include/QtSql -IC:/Qt/6.3.1/mingw_64/include/QtCore -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++ -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed -IC:/Qt/Tools/mingw1120_64/x86_64-w64-mingw32/include form.h -o debug\moc_form.cpp
 
 debug/moc_mainwindow.cpp: mainwindow.h \
 		../../../../Qt/6.3.1/mingw_64/include/QtWidgets/QMainWindow \
@@ -748,7 +748,7 @@ debug/moc_mainwindow.cpp: mainwindow.h \
 		networkclient.h \
 		debug/moc_predefs.h \
 		../../../../Qt/6.3.1/mingw_64/bin/moc.exe
-	C:\Qt\6.3.1\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/tstre/Downloads/final/debug/moc_predefs.h -IC:/Qt/6.3.1/mingw_64/mkspecs/win32-g++ -IC:/Users/tstre/Downloads/final -IC:/Qt/6.3.1/mingw_64/include -IC:/Qt/6.3.1/mingw_64/include/QtWidgets -IC:/Qt/6.3.1/mingw_64/include/QtGui -IC:/Qt/6.3.1/mingw_64/include/QtSql -IC:/Qt/6.3.1/mingw_64/include/QtCore -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++ -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++/backward -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include-fixed -IC:/Qt/Tools/mingw810_64/x86_64-w64-mingw32/include mainwindow.h -o debug\moc_mainwindow.cpp
+	C:\Qt\6.3.1\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/tstre/Downloads/final/debug/moc_predefs.h -IC:/Qt/6.3.1/mingw_64/mkspecs/win32-g++ -IC:/Users/tstre/Downloads/final -IC:/Qt/6.3.1/mingw_64/include -IC:/Qt/6.3.1/mingw_64/include/QtWidgets -IC:/Qt/6.3.1/mingw_64/include/QtGui -IC:/Qt/6.3.1/mingw_64/include/QtSql -IC:/Qt/6.3.1/mingw_64/include/QtCore -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++ -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed -IC:/Qt/Tools/mingw1120_64/x86_64-w64-mingw32/include mainwindow.h -o debug\moc_mainwindow.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
