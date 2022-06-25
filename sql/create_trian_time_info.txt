@@ -1,0 +1,16 @@
+DROP TABLE IF EXISTS train_time_info CASCADE;
+CREATE TABLE IF NOT EXISTS train_time_info(
+	train_num INTEGER references train_info,
+	route VARCHAR(1) NULL,
+	station INTEGER references train_station_code_2 NOT NULL,
+	num_order INTEGER NOT NULL,
+	dep_time CHAR(8) NOT NULL,
+	arr_time CHAR(8)NOT NULL,
+	PRIMARY KEY (train_num,num_order),
+	UNIQUE(train_num,num_order,arr_time,dep_time)
+);
+INSERT INTO train_time_info
+(
+SELECT CAST(train_num as INTEGER),CAST(j_time->>'Route' as VARCHAR(1)),CAST(j_time->>'Station' as INTEGER),CAST(j_time->>'Order' as INTEGER),CAST(j_time->>'DEPTime' as CHAR(8)),CAST(j_time->>'ARRTime' as CHAR(8))
+FROM (SELECT json_array_elements(info->'TrainInfos')->>'Train' as train_num,json_array_elements(json_array_elements(info->'TrainInfos')->'TimeInfos') as j_time FROM data_json b)as j_time
+)

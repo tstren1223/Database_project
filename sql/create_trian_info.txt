@@ -1,0 +1,28 @@
+DROP TABLE IF EXISTS train_info CASCADE;
+CREATE TABLE IF NOT EXISTS train_info(
+	tain_type CHAR(1) NOT NULL,
+	train_num INTEGER UNIQUE,
+	breast_feed CHAR(1) NOT NULL,
+	route VARCHAR(1) NULL,
+	package CHAR(1)NOT NULL,
+	over_night INTEGER NULL,
+	line_dir CHAR(1)NOT NULL,
+	train_line CHAR(1)NOT NULL,
+	dinning CHAR(1)NOT NULL,
+	foodsrv CHAR(1)NOT NULL,
+	cripple CHAR(1)NOT NULL,
+	car_class CHAR(4) REFERENCES train_code NOT NULL,
+	bike CHAR(1)NOT NULL,
+	extra_train CHAR(1)NOT NULL,
+	everyday CHAR(1)NOT NULL,
+	note VARCHAR(20) NULL,
+	note_english VARCHAR(20) NULL,
+	update_time CHAR(19)NOT NULL,
+	PRIMARY KEY (train_num),
+	UNIQUE(train_num,breast_feed,foodsrv,cripple,car_class,everyday,train_line)
+);
+INSERT INTO train_info(tain_type,train_num,breast_feed,route,package,over_night,line_dir,train_line,dinning,foodsrv,cripple,car_class,bike,extra_train,everyday,note,note_english,update_time)
+(
+SELECT CAST(j_record->>'Type' as CHAR(1))  as train_type,CAST(j_record->>'Train' as INTEGER) as train_num, CAST(j_record->>'BreastFeed'as CHAR(1)) as bf,CAST(j_record->>'route' as VARCHAR(1))as route,CAST(j_record->>'Package'as CHAR(1)) as pk,CAST(nullif(j_record->>'OverNightStn', '') as INTEGER) as ons,CAST(j_record->>'LineDir'as CHAR(1)) as ld,CAST(j_record->>'Line'as CHAR(1)),CAST(j_record->>'Dinning' as CHAR(1))as dinning,CAST(j_record->>'FoodSrv'as CHAR(1)) as food, CAST(j_record->>'Cripple'as CHAR(1)) as cripple,CAST(j_record->>'CarClass'as CHAR(4)) as carclass,CAST(j_record->>'Bike'as CHAR(1)) as bike,CAST(j_record->>'ExtraTrain'as CHAR(1)) as extra_t,CAST(j_record->>'Everyday'as CHAR(1)) as everyday,CAST(j_record->>'Note'as VARCHAR(20)) as note,CAST(j_record->>'NoteEng'as VARCHAR(20)) as note_eng,CAST(j_d as CHAR(19)) as update_time
+FROM (SELECT json_array_elements(info->'TrainInfos') as j_record FROM data_json a)as j_t,(SELECT info->>'UpdateTime' as j_d FROM data_json b)as j_date
+)

@@ -1,0 +1,17 @@
+DROP TABLE IF EXISTS train_station_code_2 CASCADE;
+CREATE TABLE IF NOT EXISTS train_station_code_2(
+	code INTEGER UNIQUE,
+	chinese_name VARCHAR(20) NOT NULL,
+	english_name VARCHAR(35) NOT NULL,
+	related_city VARCHAR(6) NOT NULL,
+	PRIMARY KEY (code),
+	FOREIGN KEY (chinese_name,english_name,related_city) REFERENCES train_station_code(chinese_name,english_name,related_city)
+);
+INSERT INTO train_station_code_2
+(SELECT  new_code,chinese_name,english_name,related_city FROM train_station_code);
+INSERT INTO train_station_code_2
+(
+	SELECT  old_code,chinese_name,english_name,related_city
+	FROM train_station_code
+	WHERE old_code NOT IN(SELECT  new_code FROM train_station_code)
+);

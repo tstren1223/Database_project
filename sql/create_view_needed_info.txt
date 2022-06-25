@@ -1,0 +1,11 @@
+DROP VIEW IF EXISTS needed_train_info;
+CREATE VIEW needed_train_info AS
+WITH train_needed AS(
+	SELECT train_num AS t_num,breast_feed bf,foodsrv AS food,cripple AS crp,car_class AS car_code,chinese_name AS c_n,everyday,chinese_name as t_c_n,train_line as t_l
+	FROM train_info a
+	Join  train_code b ON a.car_class=b.code
+)
+SELECT t_num,chinese_name as station_c_n,related_city as city,everyday,num_order,t_c_n,t_l,bf,food,crp,car_code,c_n,arr_time,dep_time
+FROM (train_needed a JOIN train_time_info b ON a.t_num=b.train_num),train_station_code_2 c
+WHERE c.code=station
+ORDER BY (t_num,num_order)

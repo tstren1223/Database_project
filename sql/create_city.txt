@@ -1,0 +1,4 @@
+DROP VIEW IF EXISTS city;
+CREATE VIEW city AS
+SELECT DISTINCT related_city
+FROM train_station_code_2

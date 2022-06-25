@@ -1,0 +1,23 @@
+QString com4="DELETE FROM seat_table";
+query->exec(com4);
+QString com="SELECT t_num,max(num_order)  FROM needed_train_info GROUP BY t_num";
+fstream ooo("C:\\Users\\tstre\\Downloads\\final\\seat_table.txt",fstream::out);
+if(!ooo.is_open())
+    cerr<<"ERROR open!";
+query->exec(com);
+while(query->next()){
+    for(int i=0;i<12;i++){
+        for(int j=0;j<80;j++){
+            QString com3=query->value(0).toString()+","+QString::number(i)+(j>=10?QString("."):QString(".0"))+QString::number(j);
+            QString one=create_one(query->value(1).toInt());
+            for(int k=0;k<14;k++){
+                com3+=","+one;
+            }
+            //com3+=")";
+            //query2.exec(com3);
+            ooo<<com3.toStdString()<<endl;
+        }
+    }
+}
+    
+qDebug()<<"END";

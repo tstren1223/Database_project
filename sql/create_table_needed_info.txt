@@ -1,0 +1,33 @@
+DROP TABLE IF EXISTS needed_train_info;
+CREATE TABLE IF NOT EXISTS needed_train_info (
+	t_num INTEGER NOT NULL,
+	station_c_n VARCHAR(20)NOT NULL,
+	city VARCHAR(6)NOT NULL,
+	everyday CHAR(1)NOT NULL,
+	num_order INTEGER NOT NULL,
+	t_c_n VARCHAR(20)NOT NULL,
+	t_l CHAR(1)NOT NULL,
+	bf CHAR(1)NOT NULL,
+	food CHAR(1)NOT NULL,
+	crp CHAR(1)NOT NULL,
+	car_code CHAR(4)NOT NULL,
+	c_n VARCHAR(20)NOT NULL,
+	arr_time CHAR(8)NOT NULL,
+	dep_time CHAR(8)NOT NULL,
+	PRIMARY KEY (t_num,num_order),
+	FOREIGN KEY (t_num,num_order) REFERENCES train_time_info,
+	FOREIGN KEY (t_num,bf,food,crp,car_code,everyday,t_l) REFERENCES train_info(train_num,breast_feed,foodsrv,cripple,car_class,everyday,train_line),
+	FOREIGN KEY (t_num,num_order,arr_time,dep_time) REFERENCES train_time_info(train_num,num_order,arr_time,dep_time),
+	FOREIGN KEY (station_c_n,city)REFERENCES train_station_code(chinese_name,related_city),
+	FOREIGN KEY (t_c_n,car_code)REFERENCES train_code(chinese_name,code)
+);
+WITH train_needed AS(
+	SELECT train_num AS t_num,breast_feed bf,foodsrv AS food,cripple AS crp,car_class AS car_code,chinese_name AS c_n,everyday,chinese_name as t_c_n,train_line as t_l
+	FROM train_info a
+	Join  train_code b ON a.car_class=b.code
+)
+INSERT INTO needed_train_info (
+SELECT t_num,chinese_name as station_c_n,related_city as city,everyday,num_order,t_c_n,t_l,bf,food,crp,car_code,c_n,arr_time,dep_time
+FROM (train_needed a JOIN train_time_info b ON a.t_num=b.train_num),train_station_code_2 c
+WHERE c.code=station
+ORDER BY (t_num,num_order))

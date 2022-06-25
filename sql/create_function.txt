@@ -1,0 +1,24 @@
+DROP FUNCTION IF EXISTS get_train;
+CREATE FUNCTION get_train(arrive_time1 CHAR(8),arrive_time2 CHAR(8),s_station VARCHAR(20),e_station VARCHAR(20))
+RETURNS TABLE(t_nn INTEGER,s_s VARCHAR(20),s_e VARCHAR(20),d_t CHAR(8),a_t CHAR(8),s_o INTEGER,e_o INTEGER)
+LANGUAGE 'plpgsql'
+AS
+$$
+BEGIN
+RETURN QUERY 
+WITH one AS(
+SELECT DISTINCT b.t_num as t_n,b.num_order as s_o,a.num_order as e_o
+FROM needed_train_info b,(SELECT t_num,num_order
+ FROM needed_train_info a
+ WHERE arr_time >arrive_time1 and arr_time <arrive_time2 and station_c_n=e_station and everyday='Y') as a
+WHERE station_c_n=s_station and a.t_num=b.t_num and a.num_order>b.num_order
+)
+SELECT b.t_n,b.station_c_n,c.station_c_n,b.dep_time,c.arr_time,b.s_o,c.e_o
+FROM(SELECT a.t_num as t_n,station_c_n,dep_time,one.s_o as s_o
+ FROM needed_train_info a,one
+ WHERE a.t_num=one.t_n and num_order=one.s_o) as b,(SELECT a.t_num as t_n,station_c_n,arr_time,one.e_o as e_o
+ FROM needed_train_info a,one
+ WHERE a.t_num=one.t_n and num_order=one.e_o) as c
+WHERE b.t_n=c.t_n;
+END
+$$

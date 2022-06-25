@@ -1,0 +1,20 @@
+DROP TABLE IF EXISTS seat_table CASCADE;
+CREATE TABLE IF NOT EXISTS seat_table  (
+	train_num INTEGER,
+	seat_code DOUBLE PRECISION,
+	code_date1 text,
+	code_date2 text,
+	code_date3 text,
+	code_date4 text,
+	code_date5 text,
+	code_date6 text,
+	code_date7 text,
+	code_date8 text,
+	code_date9 text,
+	code_date10 text,
+	code_date11 text,
+	code_date12 text,
+	code_date13 text,
+	code_date14 text,
+	PRIMARY KEY (train_num,seat_code)
+);

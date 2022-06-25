@@ -1,0 +1,8 @@
+DROP TABLE IF EXISTS train_code;
+CREATE TABLE IF NOT EXISTS train_code(
+	code CHAR(4) NOT NULL,
+	chinese_name VARCHAR(20) NOT NULL,
+	chinese_another_name VARCHAR(35) NULL,
+	PRIMARY KEY (code),
+	UNIQUE(chinese_name,code)
+);

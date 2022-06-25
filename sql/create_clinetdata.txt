@@ -1,0 +1,7 @@
+DROP TABLE IF EXISTS clientdata CASCADE;
+CREATE TABLE IF NOT EXISTS clientdata  (
+	id SERIAL,
+	account text,
+	keyword text,
+	PRIMARY KEY (id)
+);

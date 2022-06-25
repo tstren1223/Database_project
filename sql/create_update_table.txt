@@ -1,0 +1,6 @@
+DROP TABLE IF EXISTS update_table;
+CREATE TABLE IF NOT EXISTS update_table(
+	date INTEGER UNIQUE,
+	value TIMESTAMP NOT NULL,
+	PRIMARY KEY (date)
+);

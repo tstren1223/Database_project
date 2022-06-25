@@ -1,0 +1,7 @@
+CREATE INDEX s_c_n_1 ON train_station_code_2 (chinese_name);
+CREATE INDEX s_city_1 ON train_station_code_2 (related_city);
+CREATE INDEX n_t_1 ON needed_train_info(t_num,bf,food,crp,car_code,everyday,t_l);
+CREATE INDEX n_t_2 ON needed_train_info(t_num,num_order,arr_time,dep_time);
+CREATE INDEX n_t_3 ON needed_train_info(station_c_n,city);
+CREATE INDEX n_t_4 ON needed_train_info(t_c_n,car_code);
+CREATE INDEX n_t_5 ON needed_train_info(station_c_n);
